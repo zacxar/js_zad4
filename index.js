@@ -10,6 +10,17 @@ class Produkt {
     this.zuzycie = zuzycie;
   }
 
+  clone() {
+    return new Produkt(
+      this.id,
+      this.nazwa,
+      this.model,
+      this.rok,
+      this.cena,
+      this.zuzycie
+    );
+  }
+
   koszt() {
     return this.cena;
   }
@@ -29,7 +40,8 @@ class Produkt {
 
     switch (wiek % 10) {
       case 1:
-        wiek += ' rok';
+        if (wiek < 10) wiek += ' rok';
+        else wiek += ' lat';
         break;
       case 2:
         wiek += ' lata';
@@ -70,10 +82,9 @@ class ListaTowarow {
 
   wypiszWszystkieProdukty() {
     this.lista.forEach((element) => {
-        this.wypiszProdukt(element.id);
+      this.wypiszProdukt(element.id);
     });
   }
-
 
   dodajProdukt(produkt) {
     if (this.lista.findIndex((x) => x.id === produkt.id) < 0) {
@@ -85,11 +96,10 @@ class ListaTowarow {
 
   zmienProdukt(idProduktu, produkt) {
     let id = this.lista.findIndex((x) => x.id === idProduktu);
-    
+
     if (id < 0) {
       throw 'Na liście nie ma produktu o podanym id:' + idProduktu;
-    }
-    else {
+    } else {
       this.lista[id].nazwa = produkt.nazwa;
       this.lista[id].model = produkt.model;
       this.lista[id].rok = produkt.rok;
@@ -116,24 +126,54 @@ class Magazyn extends ListaTowarow {
   wypiszProdukt(idProduktu) {
     super.wypiszProdukt(idProduktu);
     let id = this.lista.findIndex((x) => x.id === idProduktu);
-    console.log(this.lista[id].ilosc);
+    console.log('ilosc: ' + this.lista[id].ilosc);
+  }
+
+  zabierzProdukt(idProduktu, ile) {
+    let id = this.lista.findIndex((x) => x.id === idProduktu);
+
+    if (this.lista[id].ilosc < ile) {
+      console.log(
+        'W magazynie jest za mała ilość produktu ' +
+          this.lista[id].nazwa +
+          ' (' +
+          this.lista[id].ilosc +
+          ')!'
+      );
+    } else {
+      this.lista[id].ilosc -= ile;
+      let pr = this.lista[id].clone();
+      pr['ilosc'] = ile;
+      return pr;
+    }
   }
 }
 
-class Sklep extends ListaTowarow {}
+class Sklep extends ListaTowarow {
+  dodajProdukt(nazwa, model, cena, rok, zuzycieEnergii) {}
 
+  dodajProdukt(idProduktu, nazwa, model, cena, rok, zuzycieEnergii) {
+    if (this.lista.findIndex((x) => x.id === idProduktu) < 0) {
+      this.lista.push(
+        new Produkt(idProduktu, nazwa, model, rok, cena, zuzycieEnergii)
+      );
+    } else {
+      throw 'Produkt o podanym id znajduje się już na liście!';
+    }
+  }
+}
 
 let p1 = new Produkt(0, 'pila', 'stihl', 2000, 245, 120);
 let p2 = new Produkt(1, 'siekiera', 'bosh', 2015, 75, 0);
-// console.log(p1.wiekProduktu())
-// console.log(p1.wiekProduktuLata())
-// console.log(p1.kosztEnergii())
-let lis = new ListaTowarow();
-lis.dodajProdukt(p2);
-lis.dodajProdukt(p1);
+
+// let lis = new ListaTowarow();
+// lis.dodajProdukt(p2);
+// lis.wypiszProdukt(0);
+
 let mag = new Magazyn();
 mag.dodajProdukt(p2, 5);
 mag.dodajProdukt(p1, 10);
-mag.wypiszProdukt(1);
-mag.wypiszProdukt(0);
-// listaTowarow.wypiszWszystkieProdukty();
+mag.wypiszWszystkieProdukty();
+
+mag.zabierzProdukt(0, 5);
+mag.wypiszWszystkieProdukty();
